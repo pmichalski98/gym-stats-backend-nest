@@ -38,4 +38,9 @@ export class TrainingsController {
   async deleteTraining(@Param('id') id: string) {
     return await this.trainingsService.deleteTraining(id);
   }
+
+  @Patch('/start')
+  async addTrainingUnit(@Body() training: Training) {
+    return await this.trainingsService.addTrainingUnit(training);
+  }
 }

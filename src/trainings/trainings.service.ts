@@ -1,5 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Training } from './trainings.model';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Training, TrainingUnits } from './trainings.model';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Exercise } from '../exercises/exercises.model';
@@ -42,6 +42,7 @@ export class TrainingsService {
           exercise.weight,
         );
       }),
+      trainingUnits: [],
     });
     const savedTraining = await createdTraining.save();
     return this.formatTraining(savedTraining);
@@ -66,6 +67,12 @@ export class TrainingsService {
     return this.formatTraining(await foundTraining.save());
   }
 
+  async addTrainingUnit(training) {
+    const trainingToUpdate = await this.findTraining(training.id);
+    trainingToUpdate.trainingUnits.push(new TrainingUnits(training.exercises));
+    return await trainingToUpdate.save();
+  }
+
   // Helper functions below
   private async findTraining(id: string) {
     return this.trainingModel.findOne({ _id: id }).exec();
@@ -76,6 +83,7 @@ export class TrainingsService {
       id: training.id,
       name: training.name,
       exercises: training.exercises,
+      trainingUnits: training.trainingUnits,
     }));
   }
 
@@ -84,6 +92,7 @@ export class TrainingsService {
       id: training.id,
       name: training.name,
       exercises: training.exercises,
+      trainingUnits: training.trainingUnits,
     };
   }
 }
