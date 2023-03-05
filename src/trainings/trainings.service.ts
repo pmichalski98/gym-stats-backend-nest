@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Training } from './trainings.model';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Exercise } from '../exercises/exercises.model';
 
 @Injectable()
 export class TrainingsService {
@@ -31,13 +32,18 @@ export class TrainingsService {
   }
 
   async addTraining(training: Training): Promise<Training> {
-    const createdTraining = await new this.trainingModel({
+    const createdTraining = new this.trainingModel({
       name: training.name,
-      // tutaj powinno byc new exerciseModel i uzupelnic defaultowe wartosci
-      exercises: training.exercises,
+      exercises: training.exercises.map((exercise) => {
+        return new Exercise(
+          exercise.name,
+          exercise.sets,
+          exercise.reps,
+          exercise.weight,
+        );
+      }),
     });
     const savedTraining = await createdTraining.save();
-    console.log(savedTraining);
     return this.formatTraining(savedTraining);
   }
 
