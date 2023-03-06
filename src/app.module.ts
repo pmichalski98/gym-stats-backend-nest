@@ -1,18 +1,23 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TrainingsModule } from './trainings/trainings.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Training } from './trainings/training.entity';
+import { ExercisesModule } from './exercises/exercises.module';
+import { Exercise } from './exercises/exercises.entity';
+import { UsersModule } from './users/users.module';
+import { User } from './users/users.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forRoot({
+      type: 'sqlite',
+      database: 'db.sqlite',
+      entities: [Training, Exercise, User],
+      synchronize: true,
+    }),
     TrainingsModule,
-    MongooseModule.forRoot(
-      'mongodb+srv://nukepower:VlphWNPVfOw1UqKK@gym-app-db.5lw9cwc.mongodb.net/trainings-app?retryWrites=true&w=majority',
-    ),
+    ExercisesModule,
+    UsersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
