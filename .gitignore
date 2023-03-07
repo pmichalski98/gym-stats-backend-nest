@@ -2,9 +2,12 @@
 /dist
 /node_modules
 
+<<<<<<< HEAD
 #other
 .env
 db.sqlite
+=======
+# env
 
 # Logs
 logs

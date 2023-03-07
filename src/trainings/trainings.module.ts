@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TrainingsController } from './trainings.controller';
 import { TrainingsService } from './trainings.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { TrainingSchema } from './trainings.model';
+import { TrainingsRepository } from './trainings.repository';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Training } from './training.entity';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: 'Training', schema: TrainingSchema }]),
-  ],
+  imports: [TypeOrmModule.forFeature([Training])],
   controllers: [TrainingsController],
-  providers: [TrainingsService],
+  providers: [TrainingsService, TrainingsRepository],
 })
 export class TrainingsModule {}
