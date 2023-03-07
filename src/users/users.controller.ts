@@ -9,6 +9,11 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UsersService } from './users.service';
+import { UpdateUserDto } from './dtos/update-user.dto';
+import { Serialize } from '../interceptors/serialize.interceptor';
+import { UserDto } from './dtos/user.dto';
+
+@Serialize(UserDto)
 @Controller('auth')
 export class UsersController {
   constructor(private usersService: UsersService) {}
@@ -20,22 +25,18 @@ export class UsersController {
   findUsers() {
     return this.usersService.findALl();
   }
-
   @Get(':id')
   findUser(@Param('id') id: string) {
     return this.usersService.findOne(parseInt(id));
   }
 
   @Patch(':id')
-  updateUser(
-    @Param('id') id: number,
-    @Body() dataToUpdate: Partial<CreateUserDto>,
-  ) {
-    return this.usersService.update(id, dataToUpdate);
+  updateUser(@Param('id') id: string, @Body() dataToUpdate: UpdateUserDto) {
+    return this.usersService.update(parseInt(id), dataToUpdate);
   }
 
   @Delete(':id')
-  deleteUser(@Param('id') id: number) {
-    return this.usersService.delete(id);
+  deleteUser(@Param('id') id: string) {
+    return this.usersService.delete(parseInt(id));
   }
 }
