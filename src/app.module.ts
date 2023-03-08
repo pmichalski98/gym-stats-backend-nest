@@ -1,23 +1,17 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { TrainingsModule } from './trainings/trainings.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Training } from './trainings/training.entity';
 import { ExercisesModule } from './exercises/exercises.module';
-import { Exercise } from './exercises/exercises.entity';
 import { UsersModule } from './users/users.module';
-import { User } from './users/users.entity';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'db.sqlite',
-      entities: [Training, Exercise, User],
-      synchronize: true,
-    }),
     TrainingsModule,
     ExercisesModule,
     UsersModule,
+    PrismaModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

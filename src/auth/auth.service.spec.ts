@@ -1,8 +1,8 @@
 import { AuthService } from './auth.service';
-import { UsersService } from './users.service';
+import { UsersService } from '../users/users.service';
 import { Test } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
-import { User } from './users.entity';
+import { User } from '../users/users.entity';
 import { faker } from '@faker-js/faker';
 
 describe('AuthService', () => {
@@ -41,14 +41,14 @@ describe('AuthService', () => {
   });
 
   it('throws an error if user signs up with email that is in use', async () => {
-    await service.signUp('asdf@asdf.com', 'asdasd');
-    await expect(service.signUp('asdf@asdf.com', 'pass')).rejects.toThrow(
+    await service.signup('asdf@asdf.com', 'asdasd');
+    await expect(service.signup('asdf@asdf.com', 'pass')).rejects.toThrow(
       BadRequestException,
     );
   });
 
   it('has hashed password with salt', async () => {
-    const user = await service.signUp('asd@asd.com', 'password');
+    const user = await service.signup('asd@asd.com', 'password');
     const [salt, hash] = user.password.split('.');
     expect(salt).toBeDefined();
     expect(hash).toBeDefined();
@@ -61,14 +61,14 @@ describe('AuthService', () => {
   });
 
   it('throws error if an invalid password is provided', async () => {
-    await service.signUp('asd@asd.com', 'pass');
+    await service.signup('asd@asd.com', 'pass');
     await expect(service.signIn('asd@asd.com', 'pass123')).rejects.toThrow(
       BadRequestException,
     );
   });
 
   it('returns user if correct password is provided', async () => {
-    await service.signUp('asd@asd.com', 'pass');
+    await service.signup('asd@asd.com', 'pass');
     const user = await service.signIn('asd@asd.com', 'pass');
     expect(user).toBeDefined();
   });

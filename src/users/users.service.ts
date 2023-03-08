@@ -1,49 +1,46 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { User } from './users.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UpdateUserDto } from './dtos/update-user.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectRepository(User) private repo: Repository<User>) {}
+  constructor(private prisma: PrismaService) {}
 
-  create(email: string, password: string) {
-    const user = this.repo.create({ email, password });
-    return this.repo.save(user);
+  create(data: Prisma.UserCreateInput) {
+    return this.prisma.user.create({ data });
   }
 
   findALl() {
-    return this.repo.find({});
+    return this.prisma.user.findMany({});
+  }
+  async findByEmail(email) {
+    return this.prisma.user.findMany({ where: email });
   }
 
-  async findById(id: number) {
-    if (!id) {
+  async findBy(userWhereUniqueInput) {
+    if (!userWhereUniqueInput) {
       return null;
     }
-    const result = await this.repo.findOne({ where: { id } });
+    const result = await this.prisma.user.findUnique({
+      where: { id: userWhereUniqueInput },
+    });
     if (!result) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('User not foundasdasdas');
     }
     return result;
   }
-  async findByEmail(email: string) {
-    const result = await this.repo.find({ where: { email } });
-    if (!result) {
-      throw new NotFoundException('User with that email not found');
-    }
-    return result;
-  }
-
-  async update(id: number, dataToUpdate: UpdateUserDto) {
-    const result = (await this.repo.update(id, dataToUpdate)).affected;
+  async update(
+    data: Prisma.UserUpdateInput,
+    where: Prisma.UserWhereUniqueInput,
+  ) {
+    const result = await this.prisma.user.update({ where, data });
     if (!result) {
       throw new NotFoundException('User not found');
     }
     return result;
   }
 
-  async delete(id: number) {
-    return (await this.repo.delete({ id })).affected;
+  async delete(where: Prisma.UserWhereUniqueInput) {
+    return this.prisma.user.delete({ where });
   }
 }

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { AuthService } from './auth.service';
+import { AuthService } from '../auth/auth.service';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './users.entity';
 
@@ -12,7 +12,7 @@ describe('UsersController', () => {
 
   beforeEach(async () => {
     fakeUsersService = {
-      findById(id: number) {
+      findBy(id: number) {
         return Promise.resolve({
           id,
           email: 'asd@asd.com',
