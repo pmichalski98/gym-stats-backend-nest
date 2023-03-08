@@ -19,8 +19,13 @@ describe('UsersController', () => {
           password: 'asdf',
         } as User);
       },
-      async findByEmail(email: string): Promise<User[]> {
+      findByEmail(email: string): Promise<User[]> {
         return Promise.resolve([{ id: 1, email, password: 'asd' }] as User[]);
+      },
+      findALl(): Promise<User[]> {
+        return Promise.resolve([
+          { id: 1, email: 'asd@asd.com', password: 'asd' },
+        ] as User[]);
       },
       // delete(id: number): Promise<number> {
       // },
@@ -49,7 +54,16 @@ describe('UsersController', () => {
     controller = module.get<UsersController>(UsersController);
   });
 
-  it('');
+  it('findallusers return user with provided email', async () => {
+    const result = await controller.findUsers();
+    console.log(result);
+    expect(result.length).toEqual(1);
+  });
+
+  it('returns user with given id', async () => {
+    const user = await controller.findUser('1');
+    expect(user).toBeDefined();
+  });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
