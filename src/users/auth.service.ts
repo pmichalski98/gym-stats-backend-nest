@@ -12,6 +12,12 @@ const scrypt = promisify(_scrypt);
 export class AuthService {
   constructor(private usersService: UsersService) {}
   async signUp(email, password) {
+    const users = await this.usersService.findByEmail(email);
+    if (users.length) {
+      throw new BadRequestException(
+        'User with this email is already registered',
+      );
+    }
     const salt = randomBytes(8).toString('hex');
     const hash = (await scrypt(password, salt, 32)) as Buffer;
 
@@ -21,7 +27,10 @@ export class AuthService {
   }
 
   async signIn(email: string, password: string) {
-    const user = await this.usersService.findByEmail(email);
+    const [user] = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new BadRequestException('user not found');
+    }
 
     const [salt, storedHash] = user.password.split('.');
 
