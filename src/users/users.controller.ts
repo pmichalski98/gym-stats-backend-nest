@@ -5,57 +5,42 @@ import {
   Get,
   Param,
   Patch,
-  Post,
   Session,
   UseGuards,
 } from '@nestjs/common';
-import { AuthDto } from '../auth/dtos/auth.dto';
 import { UsersService } from './users.service';
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { UserDto } from './dtos/user.dto';
-import { AuthService } from '../auth/auth.service';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { User } from './users.entity';
 import { AuthGuard } from '../guards/auth.guard';
-import { Prisma } from '@prisma/client';
+import { UpdateUserDto } from './dtos/update-user.dto';
 
+@UseGuards(AuthGuard)
 @Serialize(UserDto)
 @Controller('user')
 export class UsersController {
-  constructor(
-    private usersService: UsersService,
-    private authService: AuthService,
-  ) {}
+  constructor(private usersService: UsersService) {}
 
-  @UseGuards(AuthGuard)
-  @Get('/test')
-  whoAmI(@CurrentUser() currentUser: User) {
-    return currentUser;
-  }
-  @Post('/signasdup')
-  async createUser(@Body() body: AuthDto, @Session() session: any) {
-    return 'ok';
+  @Get('/me')
+  getMe(@Session() session: any) {
+    return session.userId;
   }
   @Get()
   findUsers() {
     return this.usersService.findALl();
   }
   @Get(':id')
-  findUser(@Param('id') id: Prisma.UserWhereUniqueInput) {
-    return this.usersService.findBy(id);
+  findUser(@Param('id') id: string) {
+    return this.usersService.findById(id);
   }
 
-  @Patch(':id')
-  updateUser(
-    @Param('id') id: Prisma.UserWhereUniqueInput,
-    @Body() dataToUpdate: Prisma.UserUpdateInput,
-  ) {
-    return this.usersService.update(dataToUpdate, id);
+  @Patch()
+  updateUser(@Session() session: any, @Body() dto: UpdateUserDto) {
+    return this.usersService.update(session.userId, dto);
   }
 
   @UseGuards(AuthGuard)
   @Delete(':id')
-  deleteUser(@Param('id') id: Prisma.UserWhereUniqueInput) {
+  deleteUser(@Param('id') id: string) {
     return this.usersService.delete(id);
   }
 }

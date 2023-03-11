@@ -3,47 +3,33 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  // url = "postgresql://postgres:nukepower@localhost:5432/gymapp"
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
-  password  String
-  trainings Training[]
-  @@map("users")
+  id       String     @id @default(uuid())
+  email    String     @unique
+  password String
+  // createdAt DateTime @default(now())
+  tranings Training[]
 }
 
 model Training {
-  id        Int                @id @default(autoincrement())
-  name      String             @db.VarChar(255)
+  id        String     @id @default(uuid()) @unique
+  title     String     @db.VarChar(255)
   exercises Exercise[]
-  instances TrainingInstance[]
-  userId    Int                @unique
-  User      User?              @relation(fields: [userId], references: [id])
-  @@map("trainings")
-}
-
-model TrainingInstance {
-  id         Int       @id @default(autoincrement())
-  name       String    @db.VarChar(255)
-  sets       Int
-  reps       Int
-  weight     Int
-  date       DateTime
-  Training   Training? @relation(fields: [trainingId], references: [id])
-  trainingId Int?
-  @@map("training_instances")
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Exercise {
-  id         Int       @id @default(autoincrement())
+  id         String    @id @default(uuid()) @unique
   name       String    @db.VarChar(255)
   sets       Int
   reps       Int
   weight     Int
-  Training   Training? @relation(fields: [trainingId], references: [id])
-  trainingId Int?
-  @@map("exercises")
+  training   Training @relation(fields: [trainingId], references: [id], onDelete: Cascade)
+  trainingId String
 }

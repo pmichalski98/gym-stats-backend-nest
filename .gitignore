@@ -4,8 +4,8 @@
 
 <<<<<<< HEAD
 #other
-.env
-db.sqlite
+.env.development
+.env.test
 =======
 # env
 
