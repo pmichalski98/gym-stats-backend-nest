@@ -17,7 +17,12 @@
     "test:watch": "dotenv -e .env.test -- jest --watch --maxWorkers=1",
     "test:cov": "dotenv -e .env.test jest --coverage",
     "test:debug": "dotenv -e .env.test -- node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "dotenv -e .env.test -- jest --config ./test/jest-e2e.json --watch --no-cache "
+    "test:e2e": "dotenv -e .env.test -- jest --config ./test/jest-e2e.json --watch --no-cache ",
+
+    "ps:t": "dotenv -e .env.test -- prisma studio",
+    "ps:d": "dotenv -e .env.development -- prisma studio",
+    "pdp:t": "dotenv -e .env.test -- prisma db push",
+    "pdp:d": "dotenv -e .env.development -- prisma db push"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",

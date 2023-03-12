@@ -4,8 +4,8 @@ import { Exercise } from '@prisma/client';
 export class EditTrainingDto {
   @IsOptional()
   @IsString()
-  name?: string;
+  title?: string;
   @IsOptional()
   @IsArray()
-  exercises?: Exercise[];
+  exercises?: Omit<Exercise, 'id' | 'trainingId'>[];
 }

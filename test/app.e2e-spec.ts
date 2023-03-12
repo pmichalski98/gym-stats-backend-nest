@@ -6,6 +6,7 @@ import { AuthDto } from '../src/auth/dtos/auth.dto';
 import * as pactum from 'pactum';
 import { UpdateUserDto } from '../src/users/dtos/update-user.dto';
 import { CreateTrainingDto } from '../src/trainings/dtos/create-training.dto';
+import { EditTrainingDto } from '../src/trainings/dtos/edit-training.dto';
 
 const cookieSession = require('cookie-session');
 
@@ -118,12 +119,15 @@ describe('Auth', () => {
     });
   });
   describe('User', () => {
-    it('should get me', () => {
+    it('should get signed user', () => {
       return pactum
         .spec()
         .get('/user/me')
         .withHeaders({ Cookie: cookie })
         .expectStatus(200);
+    });
+    it('should throw if user is not signed in', function () {
+      return pactum.spec().get('/user/me').expectStatus(403);
     });
     it('should edit user', () => {
       const editDto: UpdateUserDto = {
@@ -138,6 +142,53 @@ describe('Auth', () => {
     });
   });
   describe('Training', () => {
+    const foundTrainingsIds = [];
+    const createTrainingDto: CreateTrainingDto = {
+      title: 'Plan A',
+      exercises: [
+        {
+          name: 'klata',
+          sets: 3,
+          reps: 12,
+          weight: 60,
+        },
+        {
+          name: 'barki',
+          sets: 3,
+          reps: 12,
+          weight: 60,
+        },
+      ],
+    };
+    const createTrainingDto2: CreateTrainingDto = {
+      title: 'Plan B',
+      exercises: [
+        {
+          name: 'plecy',
+          sets: 4,
+          reps: 11,
+          weight: 55,
+        },
+      ],
+    };
+    const editDto: EditTrainingDto = {
+      title: 'Plan XD',
+      exercises: [
+        {
+          name: 'brzuch',
+          sets: 3,
+          reps: 13,
+          weight: 80,
+        },
+        {
+          name: 'lydki',
+          sets: 3,
+          reps: 13,
+          weight: 80,
+        },
+      ],
+    };
+
     describe('can get trainings', () => {
       it('should get empty trainings', function () {
         return pactum
@@ -147,60 +198,107 @@ describe('Auth', () => {
           .expectStatus(200)
           .expectBody([]);
       });
+      it('should throw if user not signed in', function () {
+        return pactum.spec().get('/trainings').expectStatus(403);
+      });
     });
-    describe('can add training', () => {
-      const createTrainingDto: CreateTrainingDto = {
-        title: 'Plan A',
-        exercises: [
-          {
-            trainingId: undefined,
-            id: undefined,
-            name: 'klata',
-            sets: 3,
-            reps: 12,
-            weight: 60,
-          },
-        ],
-      };
-      const createTrainingDto2: CreateTrainingDto = {
-        title: 'Plan B',
-        exercises: [
-          {
-            trainingId: undefined,
-            id: undefined,
-            name: 'plecy',
-            sets: 4,
-            reps: 11,
-            weight: 55,
-          },
-        ],
-      };
-      it('should add training with exercises ', function () {
+    describe('can create training', () => {
+      it('should create training with exercises ', function () {
         return pactum
           .spec()
           .post('/trainings')
           .withHeaders({ Cookie: cookie })
           .withBody(createTrainingDto)
           .expectStatus(201)
-          .expectBodyContains('exercises')
-          .expectBodyContains('id')
-          .expectBodyContains('userId')
-          .inspect();
+          .stores('firstTrainingId', 'id')
+          .expectBodyContains('Plan A');
       });
-      it('should add another training with exercises ', function () {
+      it('should throw if bad dto', function () {
+        return pactum
+          .spec()
+          .post('/trainings')
+          .withHeaders({ Cookie: cookie })
+          .withBody({ badrequest: 'halo' })
+          .expectStatus(400);
+      });
+      it('should create another training with exercises ', function () {
         return pactum
           .spec()
           .post('/trainings')
           .withHeaders({ Cookie: cookie })
           .withBody(createTrainingDto2)
-          .expectBodyContains('exercises')
+          .expectBodyContains('Plan B')
           .expectStatus(201)
-          .inspect();
+          .stores('secondTrainingId', 'id');
       });
     });
-    describe('can get training', () => {});
-    describe('can edit training', () => {});
-    describe('can delete training', () => {});
-    describe('can get training', () => {});
+    describe('can get trainings', () => {
+      it('should get both added trainings', function () {
+        return pactum
+          .spec()
+          .get('/trainings')
+          .withHeaders({ Cookie: cookie })
+          .expectJsonLength(2)
+          .returns((ctx) => {
+            ctx.res.body.map((training) => {
+              foundTrainingsIds.push(training.id);
+            });
+          });
+      });
+    });
+    describe('can get one training', () => {
+      it('should get one training', function () {
+        return pactum
+          .spec()
+          .get('/trainings/{id}')
+          .withPathParams('id', '$S{secondTrainingId}')
+          .withHeaders({ Cookie: cookie })
+          .expectBodyContains('Plan B')
+          .expectStatus(200);
+      });
+      it('should throw if training doesnt exist', function () {
+        return pactum
+          .spec()
+          .get('/trainings/{id}')
+          .withPathParams('id', 'wrongtrainingid')
+          .withHeaders({ Cookie: cookie })
+          .expectStatus(404);
+      });
+    });
+
+    describe('can edit training', () => {
+      it('should edit training', function () {
+        return pactum
+          .spec()
+          .patch('/trainings/{id}')
+          .withPathParams('id', '$S{secondTrainingId}')
+          .withHeaders({ Cookie: cookie })
+          .withBody(editDto)
+          .expectStatus(200)
+          .expectBodyContains('brzuch');
+      });
+    });
+    describe('can delete training', () => {
+      it('should delete training by id', function () {
+        return pactum
+          .spec()
+          .delete('/trainings/{id}')
+          .withPathParams('id', '$S{secondTrainingId}')
+          .withHeaders({ Cookie: cookie })
+          .expectStatus(200)
+          .expectBodyContains('$S{secondTrainingId}');
+      });
+    });
+    describe('can get training', () => {
+      it('should return one training', function () {
+        return pactum
+          .spec()
+          .get('/trainings/{id}')
+          .withPathParams('id', '$S{firstTrainingId}')
+          .withHeaders({ Cookie: cookie })
+          .expectStatus(200)
+          .expectBodyContains('Plan A');
+      });
+    });
   });
 });

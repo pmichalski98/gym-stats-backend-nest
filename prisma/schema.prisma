@@ -18,7 +18,7 @@ model User {
 
 model Training {
   id        String     @id @default(uuid()) @unique
-  title     String     @db.VarChar(255)
+  title     String     @db.VarChar(255) @unique
   exercises Exercise[]
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -26,10 +26,10 @@ model Training {
 
 model Exercise {
   id         String    @id @default(uuid()) @unique
-  name       String    @db.VarChar(255)
-  sets       Int
-  reps       Int
-  weight     Int
+  name       String?    @db.VarChar(255) @unique //dodalem niedawno unique
+  sets       Int?
+  reps       Int?
+  weight     Int?
   training   Training @relation(fields: [trainingId], references: [id], onDelete: Cascade)
   trainingId String
 }

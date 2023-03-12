@@ -6,5 +6,5 @@ export class CreateTrainingDto {
   @IsNotEmpty()
   title: string;
   @IsNotEmpty()
-  exercises: Partial<Exercise[]>;
+  exercises?: Partial<Exercise>[];
 }
