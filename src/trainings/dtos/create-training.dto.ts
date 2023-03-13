@@ -1,4 +1,4 @@
-import { Exercise } from '@prisma/client';
+import { Exercise, TrainingUnit } from '@prisma/client';
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateTrainingDto {

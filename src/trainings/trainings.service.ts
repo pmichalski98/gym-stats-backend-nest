@@ -7,6 +7,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTrainingDto } from './dtos/create-training.dto';
 import { EditTrainingDto } from './dtos/edit-training.dto';
+import { TrainingEndDto } from './dtos/training-end.dto';
+import now = jest.now;
 
 @Injectable()
 export class TrainingsService {
@@ -25,6 +27,7 @@ export class TrainingsService {
           userId: userId,
           title: dto.title,
           exercises: { createMany: { data: dto.exercises } },
+          trainingUnits: {},
         },
         include: {
           exercises: true,
@@ -37,6 +40,7 @@ export class TrainingsService {
   async getTrainingById(trainingId: string, userId: string) {
     const training = await this.prisma.training.findFirst({
       where: { id: trainingId, userId },
+      include: { trainingUnits: true, exercises: true },
     });
     if (!training) {
       throw new NotFoundException('Training not found');
@@ -72,5 +76,30 @@ export class TrainingsService {
 
   deleteTraining(trainingId: string) {
     return this.prisma.training.delete({ where: { id: trainingId } });
+  }
+  async getLastTrainingUnit(trainingId: string, userId: string) {
+    const trainingUnit = await this.prisma.trainingUnit.findFirst({
+      where: { trainingId },
+      include: { exercises: true },
+    });
+    if (!trainingUnit) {
+      return this.getTrainingById(trainingId, userId);
+    }
+    return trainingUnit;
+  }
+  createTrainingUnit(trainingId: string, userId: string, dto: TrainingEndDto) {
+    return this.prisma.training.update({
+      where: { id: trainingId },
+      data: {
+        trainingUnits: {
+          create: {
+            createdAt: dto.createdAt,
+            endedAt: dto.endedAt,
+            exercises: { createMany: { data: dto.exercises } },
+          },
+        },
+      },
+      include: { trainingUnits: true },
+    });
   }
 }

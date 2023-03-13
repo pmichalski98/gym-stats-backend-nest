@@ -218,7 +218,7 @@ describe('Auth', () => {
           .spec()
           .post('/trainings')
           .withHeaders({ Cookie: cookie })
-          .withBody({ badrequest: 'halo' })
+          .withBody({ wrongDto: 'halo' })
           .expectStatus(400);
       });
       it('should create another training with exercises ', function () {

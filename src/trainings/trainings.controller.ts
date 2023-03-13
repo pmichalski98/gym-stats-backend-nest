@@ -14,6 +14,7 @@ import { EditTrainingDto } from './dtos/edit-training.dto';
 import { TrainingsService } from './trainings.service';
 import { CreateTrainingDto } from './dtos/create-training.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { TrainingEndDto } from './dtos/training-end.dto';
 
 @UseGuards(AuthGuard)
 @Controller('trainings')
@@ -51,5 +52,24 @@ export class TrainingsController {
   @Delete(':id')
   deleteTraining(@Param('id') trainingId: string, @Session() session: any) {
     return this.trainingsService.deleteTraining(trainingId);
+  }
+  @Get('/start/:id')
+  trainingStart(@Param('id') trainingId: string, @Session() session: any) {
+    return this.trainingsService.getLastTrainingUnit(
+      trainingId,
+      session.userId,
+    );
+  }
+  @Post('/end/:id')
+  trainingEnd(
+    @Param('id') trainingId: string,
+    @Session() session: any,
+    @Body() dto: TrainingEndDto,
+  ) {
+    return this.trainingsService.createTrainingUnit(
+      trainingId,
+      session.userId,
+      dto,
+    );
   }
 }
