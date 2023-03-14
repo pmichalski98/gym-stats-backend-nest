@@ -7,5 +7,5 @@ export class EditTrainingDto {
   title?: string;
   @IsOptional()
   @IsArray()
-  exercises?: Omit<Exercise, 'id' | 'trainingId' | 'trainingUnitId'>[];
+  exercises?: Omit<Exercise, 'id' | 'trainingUnitId' | 'trainingId'>[];
 }

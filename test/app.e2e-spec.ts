@@ -7,6 +7,7 @@ import * as pactum from 'pactum';
 import { UpdateUserDto } from '../src/users/dtos/update-user.dto';
 import { CreateTrainingDto } from '../src/trainings/dtos/create-training.dto';
 import { EditTrainingDto } from '../src/trainings/dtos/edit-training.dto';
+import { TrainingEndDto } from '../src/trainings/dtos/training-end.dto';
 
 const cookieSession = require('cookie-session');
 
@@ -298,6 +299,56 @@ describe('Auth', () => {
           .withHeaders({ Cookie: cookie })
           .expectStatus(200)
           .expectBodyContains('Plan A');
+      });
+    });
+    describe('can start and end training', () => {
+      const endTrainingDto: TrainingEndDto = {
+        createdAt: new Date('2023-03-13T15:00:02.666Z'),
+        endedAt: new Date('2023-03-13T16:10:02.666Z'),
+        exercises: [
+          {
+            name: 'klata',
+            sets: 3,
+            reps: 12,
+            weight: 60,
+            trainingId: '$S{firstTrainingId}',
+          },
+          {
+            name: 'barki',
+            sets: 3,
+            reps: 12,
+            weight: 60,
+            trainingId: '$S{firstTrainingId}',
+          },
+        ],
+      };
+      it('should start training', function () {
+        return pactum
+          .spec()
+          .get('/trainings/start/{id}')
+          .withPathParams('id', '$S{firstTrainingId}')
+          .withHeaders({ Cookie: cookie })
+          .expectStatus(200)
+          .expectBodyContains('trainingUnits');
+      });
+      it('should throw when starts training and is not signed in', function () {
+        return pactum
+          .spec()
+          .get('/trainings/start/{id}')
+          .withPathParams('id', '$S{firstTrainingId}')
+          .expectStatus(403)
+          .inspect();
+      });
+      it('should end training', function () {
+        return pactum
+          .spec()
+          .post('/trainings/end/{id}')
+          .withPathParams('id', '$S{firstTrainingId}')
+          .withHeaders({ Cookie: cookie })
+          .withBody(endTrainingDto)
+          .expectStatus(201)
+          .expectBodyContains('createdAt')
+          .expectBodyContains('endedAt');
       });
     });
   });

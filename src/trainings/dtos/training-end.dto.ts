@@ -3,7 +3,7 @@ import { Exercise } from '@prisma/client';
 
 export class TrainingEndDto {
   @IsNotEmpty()
-  exercises: Exercise[];
+  exercises: Omit<Exercise, 'trainingUnitId' | 'id'>[];
   @IsNotEmpty()
   @IsDateString()
   createdAt: Date;
