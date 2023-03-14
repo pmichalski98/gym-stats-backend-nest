@@ -1,89 +1,105 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Training } from './trainings.model';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Exercise } from '../exercises/exercises.model';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateTrainingDto } from './dtos/create-training.dto';
+import { EditTrainingDto } from './dtos/edit-training.dto';
+import { TrainingEndDto } from './dtos/training-end.dto';
+import now = jest.now;
 
 @Injectable()
 export class TrainingsService {
-  constructor(
-    @InjectModel('Training') private readonly trainingModel: Model<Training>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  async getAll() {
-    const trainings = await this.trainingModel.find().exec();
-    if (!trainings) {
-      throw new NotFoundException('There are no trainings, first create one');
-    }
-    return this.formatTrainings(trainings);
+  getTrainings(userId: string) {
+    return this.prisma.training.findMany({
+      where: { userId },
+      include: { exercises: true },
+    });
   }
-
-  async getOne(id): Promise<Training> {
-    let training;
+  async createTraining(dto: CreateTrainingDto, userId: string) {
     try {
-      training = await this.findTraining(id);
+      return this.prisma.training.create({
+        data: {
+          userId: userId,
+          title: dto.title,
+          exercises: { createMany: { data: dto.exercises } },
+          trainingUnits: {},
+        },
+        include: {
+          exercises: true,
+        },
+      });
     } catch (error) {
-      throw new NotFoundException('You provided wrong id');
+      throw new Error(error);
     }
+  }
+  async getTrainingById(trainingId: string, userId: string) {
+    const training = await this.prisma.training.findFirst({
+      where: { id: trainingId, userId },
+      include: { trainingUnits: true, exercises: true },
+    });
     if (!training) {
       throw new NotFoundException('Training not found');
     }
-    return this.formatTraining(training);
+    return training;
   }
 
-  async addTraining(training: Training): Promise<Training> {
-    const createdTraining = new this.trainingModel({
-      name: training.name,
-      exercises: training.exercises.map((exercise) => {
-        return new Exercise(
-          exercise.name,
-          exercise.sets,
-          exercise.reps,
-          exercise.weight,
-        );
-      }),
+  async editTraining(trainingId: string, userId: string, dto: EditTrainingDto) {
+    const training = await this.prisma.training.findUnique({
+      where: { id: trainingId },
     });
-    const savedTraining = await createdTraining.save();
-    return this.formatTraining(savedTraining);
-  }
-
-  async deleteTraining(id: string) {
-    const result = await this.trainingModel.deleteOne({ _id: id });
-    if (result.deletedCount === 0) {
-      throw new NotFoundException('There is no training with that ID');
+    if (!training || training.userId !== userId) {
+      throw new ForbiddenException(' Access denied ');
     }
-    return result;
-  }
-
-  async updateTraining(updatedTraining) {
-    const foundTraining = await this.findTraining(updatedTraining.id);
-    if (updatedTraining.name) {
-      foundTraining.name = updatedTraining.name;
+    try {
+      return this.prisma.training.update({
+        where: { id: trainingId },
+        data: {
+          title: dto.title,
+          exercises: {
+            deleteMany: {
+              trainingId,
+            },
+            createMany: { data: dto.exercises },
+          },
+        },
+        include: { exercises: true },
+      });
+    } catch (error) {
+      throw new Error(error);
     }
-    if (updatedTraining.exercises) {
-      foundTraining.exercises = updatedTraining.exercises;
+  }
+
+  deleteTraining(trainingId: string) {
+    return this.prisma.training.delete({ where: { id: trainingId } });
+  }
+  async getLastTrainingUnit(trainingId: string, userId: string) {
+    const trainingUnit = await this.prisma.trainingUnit.findFirst({
+      where: { trainingId },
+      include: { exercises: true },
+    });
+    if (!trainingUnit) {
+      return this.getTrainingById(trainingId, userId);
     }
-    return this.formatTraining(await foundTraining.save());
+    return trainingUnit;
   }
-
-  // Helper functions below
-  private async findTraining(id: string) {
-    return this.trainingModel.findOne({ _id: id }).exec();
-  }
-
-  private formatTrainings(trainings: Training[]) {
-    return trainings.map((training) => ({
-      id: training.id,
-      name: training.name,
-      exercises: training.exercises,
-    }));
-  }
-
-  private formatTraining(training) {
-    return {
-      id: training.id,
-      name: training.name,
-      exercises: training.exercises,
-    };
+  createTrainingUnit(trainingId: string, userId: string, dto: TrainingEndDto) {
+    return this.prisma.training.update({
+      where: { id: trainingId },
+      data: {
+        trainingUnits: {
+          create: {
+            createdAt: dto.createdAt,
+            endedAt: dto.endedAt,
+            exercises: { createMany: { data: dto.exercises } },
+          },
+        },
+      },
+      include: { trainingUnits: true },
+    });
   }
 }

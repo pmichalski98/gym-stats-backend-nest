@@ -2,9 +2,11 @@
 /dist
 /node_modules
 
-# other
-db.sqlite
-.env
+<<<<<<< HEAD
+#other
+.env.development
+.env.test
+=======
 
 # Logs
 logs
