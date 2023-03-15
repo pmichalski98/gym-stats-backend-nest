@@ -43,6 +43,6 @@ export class AuthController {
   @Post('/signout')
   signOut(@Session() session: any) {
     session.userId = null;
-    return 'signed out';
+    return 1;
   }
 }

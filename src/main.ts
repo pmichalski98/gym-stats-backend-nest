@@ -6,6 +6,9 @@ const cookieSession = require('cookie-session');
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    origin: 'http://localhost:5173',
+  });
   app.use(
     cookieSession({
       keys: ['asdasdasdasd'],
@@ -16,7 +19,6 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
-  app.enableCors();
   await app.listen(3001, 'localhost', () => console.log('Listening...'));
 }
 bootstrap();

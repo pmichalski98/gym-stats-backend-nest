@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   Session,
   UseGuards,
 } from '@nestjs/common';
@@ -30,7 +31,7 @@ export class TrainingsController {
     return this.prisma.cleanDb();
   }
   @Get()
-  getTrainings(@Session() session: any) {
+  getTrainings(@Req() req: Request, @Session() session: any) {
     return this.trainingsService.getTrainings(session.userId);
   }
   @Post()
