@@ -48,23 +48,26 @@ export class TrainingsService {
     return training;
   }
 
-  async editTraining(trainingId: string, userId: string, dto: EditTrainingDto) {
+  async editTraining(userId: string, dto: EditTrainingDto) {
+    // TEMPORARY SOLUTION TO PRISMA PROBLEM WITH UPDATING EXERCISES, DIDNT FIND BETTER SOLUTION YET
+    const filteredDto = this.filterExercises(dto);
     const training = await this.prisma.training.findUnique({
-      where: { id: trainingId },
+      where: { id: dto.id },
     });
     if (!training || training.userId !== userId) {
       throw new ForbiddenException(' Access denied ');
     }
     try {
       return this.prisma.training.update({
-        where: { id: trainingId },
+        where: { id: dto.id },
         data: {
           title: dto.title,
           exercises: {
             deleteMany: {
-              trainingId,
+              trainingId: dto.id,
             },
-            createMany: { data: dto.exercises },
+            // THIS IS WHAT IM REFFERING TO, IF I PROVIDE dto.exercises, it wont work cause it has trainingId inside
+            createMany: { data: filteredDto.exercises },
           },
         },
         include: { exercises: true },
@@ -72,6 +75,22 @@ export class TrainingsService {
     } catch (error) {
       throw new Error(error);
     }
+  }
+
+  private filterExercises(dto: EditTrainingDto) {
+    const filteredExercises = dto.exercises.map((exercise) => {
+      return {
+        name: exercise.name,
+        reps: exercise.reps,
+        sets: exercise.sets,
+        weight: exercise.weight,
+      };
+    });
+    const filteredDto = {
+      ...dto,
+      exercises: filteredExercises,
+    };
+    return filteredDto;
   }
 
   deleteTraining(trainingId: string) {

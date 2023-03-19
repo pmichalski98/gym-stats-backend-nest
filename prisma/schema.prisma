@@ -36,9 +36,9 @@ model TrainingUnit {
 model Exercise {
   id         String   @id @default(uuid())
   name       String?  @db.VarChar(255)
-  sets       Int?
-  reps       Int?
-  weight     Int?
+  sets       Int? @default(0)
+  reps       Int? @default(0)
+  weight     Int? @default(0)
   training   Training @relation(fields: [trainingId], references: [id], onDelete: Cascade)
   trainingId String
   trainingUnit TrainingUnit? @relation(fields: [trainingUnitId], references: [id], onDelete: Cascade)

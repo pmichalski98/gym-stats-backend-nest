@@ -42,13 +42,9 @@ export class TrainingsController {
   getTraining(@Param('id') trainingId: string, @Session() session: any) {
     return this.trainingsService.getTrainingById(trainingId, session.userId);
   }
-  @Patch(':id')
-  editTraining(
-    @Body() dto: EditTrainingDto,
-    @Param('id') trainingId: string,
-    @Session() session: any,
-  ) {
-    return this.trainingsService.editTraining(trainingId, session.userId, dto);
+  @Patch()
+  editTraining(@Body() dto: EditTrainingDto, @Session() session: any) {
+    return this.trainingsService.editTraining(session.userId, dto);
   }
   @Delete(':id')
   deleteTraining(@Param('id') trainingId: string, @Session() session: any) {
